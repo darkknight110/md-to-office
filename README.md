@@ -208,7 +208,8 @@ npx skills add tt-a1i/archify -g
 md-to-office/
 ├── SKILL.md                         技能定义（作为 Agent Skill 安装时用）
 ├── README.md                        本文件
-├── LICENSE                          MIT
+├── LICENSE                          标准 MIT（未修改，便于 GitHub 自动识别）
+├── NOTICE.md                        来源/作者身份、第三方依赖与字体声明
 ├── requirements.txt                 python-docx / Pillow
 ├── .gitignore
 ├── scripts/
@@ -274,6 +275,6 @@ python3 -m unittest discover -s tests -v
 `BOX_CHARS`（`md2office.py:43`），还有为答辩场景设计的 `defence_numbered_blocks`
 （`md2office.py:177`）。全部 import 仅标准库 + `python-docx` + `Pillow`，没有搬运任何模块结构。
 
-关于 AI 生成内容的著作权状况，见 [LICENSE](LICENSE) 的「来源与作者身份说明」一节。
-无论著作权状况如何，MIT 授予你的使用、修改、分发权利完整有效。
+关于 AI 生成内容的著作权状况、第三方依赖与字体声明，见 [NOTICE.md](NOTICE.md)。
+无论著作权状况如何，[MIT](LICENSE) 授予你的使用、修改、分发权利完整有效。
 
