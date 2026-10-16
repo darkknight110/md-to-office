@@ -1,0 +1,30 @@
+# 生成物 / 导出物
+out/
+dist/
+build/
+*.docx
+*.pdf
+*.pdf.tmp
+
+# 架构图渲染产物（规格文件才是源，图片是产物）
+diagrams/*.png
+diagrams/*.jpg
+diagrams/*.svg
+
+# ★ 真实项目规格：含客户名、业务与第三方系统名，绝不能入库
+#   模板请用 scripts/spec.example.json
+md2office.spec.json
+**/md2office.spec.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

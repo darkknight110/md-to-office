@@ -1,0 +1,41 @@
+{
+  "_说明": "md2office 规格文件示例。放在被转换目录下并命名为 md2office.spec.json 会被自动发现；也可用 --spec 指定。",
+  "_字段": {
+    "diagrams": "要生成的架构图列表（也可用 diagram.py 单独生成）",
+    "blocks": "Markdown 中代码块 → 图片的替换规则；contains 里的关键词需全部命中",
+    "defence_numbered_blocks": "是否把代码块里的编号流程（1. 2. 3.）去掉围栏变成正常列表"
+  },
+
+  "diagrams": [
+    {
+      "out": "diagrams/system-architecture.png",
+      "top": {
+        "title": "顶层平台 / 管理驾驶舱",
+        "sub": "经营分析 · 运营看板"
+      },
+      "main": {
+        "title": "核心业务系统",
+        "badge": "本方案",
+        "modules": [
+          ["模块一", "模块二", "模块三", "模块四", "模块五"],
+          ["模块六", "模块七", "模块八", "模块九", "模块十"]
+        ]
+      },
+      "bottoms": [
+        { "title": "设备接入", "sub": "传感器 / 称重 / 门禁" },
+        { "title": "外部系统", "sub": "交易 · 监管" },
+        { "title": "独立子系统", "sub": "独立项目" },
+        { "title": "既有系统", "sub": "遗留系统对接" }
+      ]
+    }
+  ],
+
+  "blocks": [
+    {
+      "contains": ["顶层平台", "核心业务系统"],
+      "image": "diagrams/system-architecture.png"
+    }
+  ],
+
+  "defence_numbered_blocks": true
+}
