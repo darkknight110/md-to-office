@@ -1,10 +1,30 @@
 # md-to-office —— Markdown → Word / PDF 工具库
 
+<sub>中文 · <a href="README.en.md">English</a></sub>
+
 把 Markdown 转成排版规范的中文 **Word（.docx）** 与／或 **PDF**，可选地生成**分层架构图**并把稿内的 **ASCII 字符画自动替换**成真正的图。
+
+![转换前 / 转换后](docs/before-after.png)
+
+<sub>左边是稿子里的样子（等宽字体下能对齐），右边是转换后的**真实 PNG**（由 `scripts/diagram.py` 按 `md2office.spec.json` 渲染）。`python3 tools/make_before_after.py` 可重新生成这张图。</sub>
 
 两种用法：**当命令行工具直接用**，或**作为 Agent Skill 安装**（Claude Code / Codex / DSH 等），让 AI 自动调用。写方案、出报告、做交付物都适用。
 
 > 只出 Word 时**不需要任何外部二进制**，只依赖 `python-docx` 与 `Pillow`。
+
+## 一行装好
+
+```bash
+git clone https://github.com/darkknight110/md-to-office.git ~/.md-to-office \
+  && python3 -m pip install -q -r ~/.md-to-office/requirements.txt \
+  && python3 ~/.md-to-office/scripts/md2office.py --help
+```
+
+装完就能用：`python3 ~/.md-to-office/scripts/md2office.py --input ./文档 --output ./导出 --format docx`。
+不想装依赖也可以先 `--help` 看一下；只出 Word 时依赖仅 `python-docx` + `Pillow`。
+
+> **排版有据可依**：正文 10.5pt / 1.15 倍行距 / 22-22-20-20mm 不是拍脑袋——
+> 52 份真实交付物的实测值与国标公文的差距都在 [docs/typography-baseline.md](docs/typography-baseline.md)（机器可读：[typography-baseline.json](docs/typography-baseline.json)）。
 
 ---
 
@@ -208,6 +228,7 @@ npx skills add tt-a1i/archify -g
 md-to-office/
 ├── SKILL.md                         技能定义（作为 Agent Skill 安装时用）
 ├── README.md                        本文件
+├── README.en.md                     英文版（What / Why / API / Limits）
 ├── LICENSE                          标准 MIT（未修改，便于 GitHub 自动识别）
 ├── NOTICE.md                        来源/作者身份、第三方依赖与字体声明
 ├── requirements.txt                 python-docx / Pillow
@@ -218,6 +239,13 @@ md-to-office/
 │   ├── diagram.py                   架构图生成（内置 Pillow 渲染器）
 │   ├── archify_bridge.py            可选：调用 archify 渲染复杂图型
 │   └── spec.example.json            规格示例
+├── tools/
+│   ├── measure_typography.py        排版量测（PDF/DOCX → JSON，基线可复跑）
+│   └── make_before_after.py         生成 docs/before-after.png（视觉证据可复跑）
+├── docs/
+│   ├── typography-baseline.md       排版基线：52 份实测 vs GB/T 9704-2012
+│   ├── typography-baseline.json     机器可读基线（profiles / gaps / limits）
+│   └── before-after.png             转换前后对比图
 └── tests/
     └── test_smoke.py                冒烟测试（stdlib unittest）
 ```

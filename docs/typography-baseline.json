@@ -1,0 +1,87 @@
+{
+  "version": "1.0.0",
+  "measured_at": "2026-10-21",
+  "scope": "md-to-office 自有交付物 + 国家标准 GB/T 9704-2012",
+  "why": "把「默认宋体小四、1.15 倍行距」这类偏好，换成可复核的数字：现状是多少、规范要求多少、差在哪。",
+  "method": {
+    "tool": "tools/measure_typography.py",
+    "rerun": "python3 tools/measure_typography.py --out baseline.json <目录或文件...>",
+    "docx": "读 OOXML 声明值：section 页边距、run/style 字号、Normal 行距 —— 精确值，不是估计。",
+    "pdf": "用 pdfplumber 取字符包围盒：字号按字符数加权取众数；行距取整行宽相邻行的间距中位数。",
+    "pdf_caveat": "PDF 量到的是**文本包围盒**而不是版心边距：页眉/页脚会污染上下边距（实测下边 12.9mm 是页码位置，不是版心）。因此 PDF 结果只用于交叉验证字号与行距。"
+  },
+  "corpus": {
+    "docx": 52,
+    "pdf": 18,
+    "source": "项目方案/ 下的真实对外交付物（中原四季、成语小程序、今天吃啥不麻烦等）",
+    "note": "非行业抽样：这是本工具自己的产出。它能回答「我们的现状是什么」，不能回答「行业普遍是什么」。"
+  },
+  "profiles": {
+    "business-report": {
+      "source": "measured",
+      "n": 52,
+      "sample": "全部 52 份 DOCX 交付物",
+      "values": {
+        "page": "A4 210x297mm",
+        "body_size_pt": 10.5,
+        "table_size_pt": 9.0,
+        "heading_sizes_pt": [15.0, 13.0, 11.5],
+        "line_pitch_pt": 14.5,
+        "line_spacing_multiple": 1.15,
+        "space_after_pt": 4.0,
+        "margins_mm": {"top": 22, "bottom": 22, "left": 20, "right": 20},
+        "usable_width_mm": 170,
+        "chars_per_line_est": 46,
+        "lines_per_page_est": 49
+      },
+      "observation": "52/52 完全一致：没有一份被手工调整过。默认值事实上就是这套文档的「家规」。"
+    },
+    "gongwen": {
+      "source": "normative",
+      "standard": "GB/T 9704-2012《党政机关公文格式》",
+      "citations": [
+        "https://dzb.xsyu.edu.cn/fwzn/gwgs.htm",
+        "https://slj.jiujiang.gov.cn/zwzx/gggs/201208/t20120823_2965692.html"
+      ],
+      "values": {
+        "page": "A4 210x297mm",
+        "margins_mm": {"top": 37, "bottom": 35, "left": 28, "right": 26},
+        "type_area_mm": [156, 225],
+        "body_font": "3号仿宋（=16pt）",
+        "line_pitch_pt": 28,
+        "lines_per_page": 22,
+        "chars_per_line": 28,
+        "heading_font": "3号小标宋或黑体"
+      },
+      "cross_check": "版心 156mm=442pt，442/16≈27.6→28 字/行；225mm=638pt，638/28≈22.8→22 行/面。规范里的 22x28 不是拍脑袋，是版心尺寸÷字号÷行距算出来的。"
+    }
+  },
+  "current_defaults": {
+    "source": "scripts/md2docx.py::Config",
+    "body_size_pt": 10.5,
+    "table_size_pt": 9.0,
+    "line_spacing_multiple": 1.15,
+    "space_after_pt": 4.0,
+    "margins_cm": {"top": 2.2, "bottom": 2.2, "left": 2.0, "right": 2.0},
+    "matches_profile": "business-report"
+  },
+  "gaps_vs_gongwen": [
+    {"field": "body_size_pt", "ours": 10.5, "standard": 16, "ratio": 0.66, "impact": "字号偏小，长文阅读疲劳；不符合公文硬性要求"},
+    {"field": "line_pitch_pt", "ours": 14.5, "standard": 28, "ratio": 0.52, "impact": "行距只有规范的一半，页面密度接近两倍"},
+    {"field": "margins_mm.top", "ours": 22, "standard": 37, "impact": "天头过窄，装订与签批空间不足"},
+    {"field": "margins_mm.left", "ours": 20, "standard": 28, "impact": "订口过窄，双面打印装订后文字易被吃掉"},
+    {"field": "chars_per_line", "ours": 46, "standard": 28, "ratio": 1.64, "impact": "每行字过多，不符合公文版式"},
+    {"field": "lines_per_page", "ours": 49, "standard": 22, "ratio": 2.23, "impact": "每页行数翻倍"}
+  ],
+  "decision": {
+    "keep_default": "business-report 保持现状：内部方案/研报用 10.5pt + 1.15 倍行距是合理的，改成公文体反而降低信息密度。",
+    "not_implemented": "gongwen profile **尚未实现**：本文件只给出规范数字，不声称工具已支持。要支持需新增 Config 预设 + 页眉页脚/页码格式 + 字体回退（仿宋_GB2312 在多数系统缺失）。",
+    "next": "若要对外发公文，先跑 tools/measure_typography.py 量自己的成品，再逐项对齐 gaps_vs_gongwen 表。"
+  },
+  "limits": [
+    "样本是自有交付物，不代表行业普遍做法；若要行业基线，需要另行采集外部机构文档。",
+    "外部机构 PDF（央行报告、白皮书）在本机网络下多数无法下载（raw.githubusercontent 被重置、部分政务站点返回 403/449），因此未纳入。",
+    "PDF 版式参数是文本包围盒估计值，不能等同于版面声明值。",
+    "行距按「整行宽」相邻行计算；表格密集的页面会被排除，样本以正文页为主。"
+  ]
+}
