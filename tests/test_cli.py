@@ -19,7 +19,8 @@ SCRIPT = os.path.join(ROOT, "scripts", "md2office.py")
 
 
 def run(*args):
-    return subprocess.run([sys.executable, SCRIPT, *args], capture_output=True, text=True)
+    return subprocess.run([sys.executable, SCRIPT, *args], capture_output=True,
+                          text=True, encoding="utf-8", errors="replace")
 
 
 class TestCliContract(unittest.TestCase):

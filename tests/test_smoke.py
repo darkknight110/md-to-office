@@ -97,8 +97,8 @@ class Base(unittest.TestCase):
             fh.write(SAMPLE_MD)
 
     def run_cli(self, *args):
-        return subprocess.run([PY, MD2OFFICE, *args],
-                              capture_output=True, text=True)
+        return subprocess.run([PY, MD2OFFICE, *args], capture_output=True,
+                              text=True, encoding="utf-8", errors="replace")
 
 
 class TestDocx(Base):
@@ -120,7 +120,7 @@ class TestDocx(Base):
         env["LIBREOFFICE_PATH"] = "/nonexistent/soffice"
         r = subprocess.run(
             [PY, MD2OFFICE, "--input", self.indir, "--output", out, "--format", "docx"],
-            capture_output=True, text=True, env=env)
+            capture_output=True, text=True, encoding="utf-8", errors="replace", env=env)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
 
@@ -188,6 +188,7 @@ class TestDiagram(Base):
             self.assertEqual(fh.read(8), b"\x89PNG\r\n\x1a\n")
 
 
+@unittest.skipIf(os.name == "nt", "Windows 无法执行 POSIX 假 soffice 脚本")
 class TestPdfBackend(unittest.TestCase):
     """PDF 后端回退链：通用 soffice 优先，libreoffice-kit 兜底。"""
 
