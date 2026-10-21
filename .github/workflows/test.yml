@@ -1,0 +1,41 @@
+# 自证：单测 + 真实转换冒烟。不装 LibreOffice —— 只验证 Word 路径（零外部二进制）。
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.9', '3.11']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: 依赖
+        run: python -m pip install -q -r requirements.txt
+      - name: 单元测试
+        run: python -m unittest discover -s tests -v
+      - name: 转换冒烟（真实产出 .docx）
+        run: |
+          mkdir -p /tmp/out
+          python scripts/md2office.py --input examples/demo/sample.md --output /tmp/out --format docx
+          test -s /tmp/out/sample.docx
+      - name: 断言产物不是空壳（标题/表格/字符画都在）
+        run: |
+          python - <<'PY'
+          import docx
+          d = docx.Document('/tmp/out/sample.docx')
+          text = "\n".join(p.text for p in d.paragraphs)
+          assert "示例文档" in text, "标题丢了"
+          assert "架构" in text, "章节丢了"
+          # 未提供 spec 时字符画必须原样保留 —— 静默删除比报错更危险
+          assert "┌" in text or "┌" in "\n".join(c.text for t in d.tables for r in t.rows for c in r.cells), "字符画被静默删除"
+          assert len(d.tables) >= 1, "表格丢了"
+          print("产物检查通过：段落", len(d.paragraphs), "表格", len(d.tables))
+          PY
