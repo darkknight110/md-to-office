@@ -17,6 +17,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      - name: 中文字体（架构图需要；最小化镜像默认没有）
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+          fc-list :lang=zh | head -3
       - name: 依赖
         run: python -m pip install -q -r requirements.txt
       - name: 单元测试

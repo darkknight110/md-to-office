@@ -35,6 +35,20 @@ import md2office  # noqa: E402
 import diagram as diagram_mod  # noqa: E402
 import archify_bridge  # noqa: E402
 
+# 生成架构图需要中文字体；最小化 Linux 镜像默认没有（CI 里要先装 fonts-noto-cjk）。
+# 没有字体时跳过相关用例，而不是让整套测试红 —— 否则"环境缺字体"会被误读成"代码坏了"。
+def _has_cjk_font() -> bool:
+    try:
+        diagram_mod.find_font("heading")
+        diagram_mod.find_font("body")
+        return True
+    except Exception:
+        return False
+
+
+HAS_CJK_FONT = _has_cjk_font()
+NO_FONT_REASON = "本机无中文字体（Linux 请装 fonts-noto-cjk）"
+
 PY = sys.executable
 MD2OFFICE = os.path.join(SCRIPTS, "md2office.py")
 
@@ -111,6 +125,7 @@ class TestDocx(Base):
 
 
 class TestAsciiBlockReplacement(Base):
+    @unittest.skipUnless(HAS_CJK_FONT, NO_FONT_REASON)
     def test_hit_replaces_block_with_image(self):
         spec_path = os.path.join(self.indir, "spec.json")
         import json
@@ -154,6 +169,7 @@ class TestAsciiBlockReplacement(Base):
 
 
 class TestDiagram(Base):
+    @unittest.skipUnless(HAS_CJK_FONT, NO_FONT_REASON)
     def test_diagram_renders_png(self):
         outdir = os.path.join(self.tmp, "diagrams")
         os.makedirs(outdir)
