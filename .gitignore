@@ -28,3 +28,8 @@ venv/
 Thumbs.db
 .idea/
 .vscode/
+
+# Python 打包产物
+dist/
+build/
+*.egg-info/

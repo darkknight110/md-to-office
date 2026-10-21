@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "md-to-office"
+version = "1.0.0"
+description = "Markdown → 排版规范的中文 Word/PDF；把稿内的 ASCII 字符画替换成真正的分层框图；附公文模板引擎"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "darkknight110" }]
+keywords = ["markdown", "docx", "word", "pdf", "chinese", "typography", "diagram", "gongwen", "公文"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: End Users/Desktop",
+  "License :: OSI Approved :: MIT License",
+  "Natural Language :: Chinese (Simplified)",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Topic :: Office/Business :: Office Suites",
+  "Topic :: Text Processing :: Markup :: Markdown",
+]
+dependencies = [
+  "python-docx>=1.1",
+  "Pillow>=10",
+]
+
+[project.optional-dependencies]
+# PDF 需要本机装 LibreOffice（不是 pip 依赖）；这里只留一个提示性分组
+pdf = []
+
+[project.urls]
+Homepage = "https://github.com/darkknight110/md-to-office"
+Issues = "https://github.com/darkknight110/md-to-office/issues"
+
+[project.scripts]
+md2office = "md_to_office.md2office:main"
+md2docx = "md_to_office.md2docx:main"
+gongwen = "md_to_office.gongwen:main"
+
+[tool.setuptools.packages.find]
+include = ["md_to_office*"]
+
+[tool.setuptools.package-data]
+md_to_office = ["*.json"]

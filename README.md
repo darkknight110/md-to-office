@@ -17,13 +17,20 @@
 ## 一行装好
 
 ```bash
-git clone https://github.com/darkknight110/md-to-office.git ~/.md-to-office \
-  && python3 -m pip install -q -r ~/.md-to-office/requirements.txt \
-  && python3 ~/.md-to-office/scripts/md2office.py --help
+pipx install git+https://github.com/darkknight110/md-to-office.git
+# 或者：uv tool install git+https://github.com/darkknight110/md-to-office.git
+# PyPI 首发后即可：pipx install md-to-office
 ```
 
-装完就能用：`python3 ~/.md-to-office/scripts/md2office.py --input ./文档 --output ./导出 --format docx`。
-不想装依赖也可以先 `--help` 看一下；只出 Word 时依赖仅 `python-docx` + `Pillow`。
+装完直接用命令，不需要 `python` 前缀、也不需要 `requirements.txt`：
+
+```bash
+md2office --input ./文档 --output ./导出 --format docx
+gongwen template add 某单位模板.docx --name 某单位
+```
+
+> 没有 pipx/uv？退回 `python3 -m pip install --user git+https://…` 也一样，只是入口在 `~/.local/bin`。
+> 只出 Word 时依赖仅 `python-docx` + `Pillow`；**PDF 需要本机 LibreOffice**（不是 pip 依赖）。
 
 > **排版有据可依**：正文 10.5pt / 1.15 倍行距 / 22-22-20-20mm 不是拍脑袋——
 > 52 份真实交付物的实测值与国标公文的差距都在 [docs/typography-baseline.md](docs/typography-baseline.md)（机器可读：[typography-baseline.json](docs/typography-baseline.json)）。

@@ -12,14 +12,14 @@ import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-sys.path.insert(0, os.path.join(ROOT, "scripts"))
+sys.path.insert(0, ROOT)
 
 import docx  # noqa: E402
 from docx.enum.text import WD_LINE_SPACING  # noqa: E402
 from docx.oxml.ns import qn  # noqa: E402
 from docx.shared import Mm, Pt  # noqa: E402
 
-import gongwen  # noqa: E402
+from md_to_office import gongwen  # noqa: E402
 
 
 def build_template(path, body_placeholder="{{正文}}"):

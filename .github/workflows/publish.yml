@@ -1,0 +1,47 @@
+# 发布到 PyPI：先证明"装得上、跑得起来"，再上传。
+# 用 PyPI Trusted Publishing（OIDC），不需要在仓库里放 token。
+name: publish
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 构建
+        run: |
+          python -m pip install -q build
+          python -m build
+      - name: 装进干净环境并验证入口
+        run: |
+          python -m venv /tmp/v
+          /tmp/v/bin/pip install -q dist/*.whl
+          /tmp/v/bin/md2office --help > /dev/null
+          /tmp/v/bin/gongwen --help > /dev/null
+          /tmp/v/bin/python -c "import md_to_office; print('version', md_to_office.__version__)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

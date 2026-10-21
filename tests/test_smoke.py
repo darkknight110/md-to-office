@@ -29,11 +29,11 @@ import zipfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SCRIPTS = os.path.join(ROOT, "scripts")
-sys.path.insert(0, SCRIPTS)
+sys.path.insert(0, ROOT)
 
-import md2office  # noqa: E402
-import diagram as diagram_mod  # noqa: E402
-import archify_bridge  # noqa: E402
+from md_to_office import md2office  # noqa: E402
+from md_to_office import diagram as diagram_mod  # noqa: E402
+from md_to_office import archify_bridge  # noqa: E402
 
 # 生成架构图需要中文字体；最小化 Linux 镜像默认没有（CI 里要先装 fonts-noto-cjk）。
 # 没有字体时跳过相关用例，而不是让整套测试红 —— 否则"环境缺字体"会被误读成"代码坏了"。
