@@ -385,6 +385,11 @@ python3 scripts/gongwen.py check 成文.docx --template 某单位
 
 ---
 
+## 延伸阅读
+
+- [中文 Markdown 转 Word，90% 的人卡在这 7 个排版细节](docs/articles/word-typography-7-pitfalls.md)
+  —— 用 52 份实测数据 + GB/T 9704 讲清字体/字号/行距/版心/表格/字符画这 7 个坑，可直接转发给不装工具的人。
+
 ## 来源说明
 
 本项目代码由 **AI 编码助手（DeepSeek v4.1 flash）在维护者提供的本项目具体场景下生成**，
