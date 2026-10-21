@@ -5,13 +5,16 @@ on:
   push:
     branches: [main]
   pull_request:
+  # 兜底：偶发的 push 未触发（实测丢过一次），每天全量跑一遍
+  schedule:
+    - cron: '0 3 * * *'
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ['3.9', '3.11']
+        python: ['3.9', '3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

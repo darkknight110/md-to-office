@@ -71,6 +71,9 @@ Markdown 里的架构图通常是用字符画的：
 # 1) 装（装完是可执行命令，不需要 python 前缀）
 pipx install git+https://github.com/darkknight110/md-to-office.git
 
+# 1.5) 先体检环境（可选，但它会告诉你 PDF 能不能出）
+md2office --doctor
+
 # 2) 用你自己的稿子（想先试：git clone 仓库后用 examples/demo/sample.md）
 md2office --input 你的方案.md --output out --format docx
 ```
@@ -148,6 +151,8 @@ SK="<本仓库>/scripts"
 | `--keep-prepared` | 保留预处理后的 md（便于排查） | 否 |
 | `--no-overwrite` | 目标已存在时跳过（默认覆盖但会逐条提示） | 否 |
 | `--version` | 打印版本 | — |
+| `--doctor` | 体检本机环境（依赖 / 中文字体 / LibreOffice），不转换 | — |
+| `--json` | 机器可读输出（文件、计数、警告） | 否 |
 | `--font-body` | 正文中文字体 | `宋体` |
 | `--font-heading` | 标题中文字体 | `微软雅黑` |
 | `--font-code` | 代码字体 | `Consolas` |

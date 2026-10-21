@@ -23,6 +23,25 @@ def run(*args):
 
 
 class TestCliContract(unittest.TestCase):
+    def test_doctor_不转换只体检(self):
+        r = run("--doctor")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("python-docx", r.stdout)
+        self.assertIn("LibreOffice", r.stdout)
+
+    def test_json_输出可解析(self):
+        import json
+        with tempfile.TemporaryDirectory() as td:
+            src = os.path.join(td, "a.md")
+            open(src, "w", encoding="utf-8").write("# 标题\n\n正文。\n")
+            out = os.path.join(td, "out")
+            r = run("--input", src, "--output", out, "--format", "docx", "--json")
+            self.assertEqual(r.returncode, 0, r.stderr)
+            payload = json.loads(r.stdout)
+            self.assertEqual(payload["counts"]["docx"], 1)
+            self.assertEqual(payload["files"][0]["status"], "ok")
+            self.assertEqual(payload["files"][0]["docx"], "a.docx")
+
     def test_version(self):
         r = run("--version")
         self.assertEqual(r.returncode, 0, r.stderr)

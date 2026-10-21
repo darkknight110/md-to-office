@@ -226,10 +226,59 @@ def collect_md(input_path, only):
     return sorted(files), root
 
 
+
+def doctor() -> int:
+    """体检本机环境：依赖、中文字体、PDF 后端。不转换任何文件。"""
+    import importlib.metadata as md
+    import platform
+    import shutil
+
+    rows = []
+    hard_ok = True
+
+    def ver(pkg):
+        try:
+            return md.version(pkg)
+        except Exception:                      # noqa: BLE001
+            return None
+
+    docx_v = ver("python-docx")
+    pil_v = ver("Pillow")
+    rows.append(("python-docx", docx_v or "缺失", bool(docx_v)))
+    rows.append(("Pillow", pil_v or "缺失", bool(pil_v)))
+    hard_ok &= bool(docx_v and pil_v)
+
+    # 中文字体：直接看内置渲染器的候选路径，命中即"有"
+    font_hit = next((p for p in diagram_mod.FONT_CANDIDATES["heading"] if os.path.exists(p)), None)
+    rows.append(("中文字体（架构图）", font_hit or "未找到", bool(font_hit)))
+    hard_ok &= bool(font_hit)
+
+    # PDF 后端：只影响 PDF，不影响 Word
+    soffice = shutil.which("soffice") or shutil.which("libreoffice")
+    if not soffice:
+        for cand in ("/Applications/LibreOffice.app/Contents/MacOS/soffice",
+                     "/usr/bin/soffice", r"C:\Program Files\LibreOffice\program\soffice.exe"):
+            if os.path.exists(cand):
+                soffice = cand
+                break
+    rows.append(("LibreOffice（PDF）", soffice or "未找到（只影响 PDF）", bool(soffice)))
+
+    print(f"md-to-office doctor　Python {platform.python_version()}　{platform.system()}")
+    for name, value, good in rows:
+        print(f"  {'✓' if good else '✗'} {name:<22} {value}")
+    if hard_ok:
+        print("\n结论：可以出 Word。" + ("" if soffice else " PDF 需要安装 LibreOffice。"))
+    else:
+        print("\n结论：缺关键依赖，先按上面的 ✗ 处理。")
+    return 0 if hard_ok else 1
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Markdown → Word / PDF 统一转换")
-    ap.add_argument("--input", required=True, help="输入的 .md 文件或目录（递归）")
-    ap.add_argument("--output", required=True, help="输出目录")
+    ap.add_argument("--input", help="输入的 .md 文件或目录（递归）")
+    ap.add_argument("--output", help="输出目录")
+    ap.add_argument("--doctor", action="store_true", help="体检本机环境（字体 / LibreOffice / 依赖），不转换")
+    ap.add_argument("--json", action="store_true", help="机器可读输出（转换结果汇总）")
     ap.add_argument("--format", choices=["docx", "pdf", "both"], default="both")
     ap.add_argument("--only", action="append", default=[], help="文件名通配，可重复")
     ap.add_argument("--spec", help="规格 JSON（架构图 + 字符画替换规则）")
@@ -249,6 +298,16 @@ def main(argv=None):
     from . import __version__
     ap.add_argument("--version", action="version", version=f"md-to-office {__version__}")
     a = ap.parse_args(argv)
+
+    def say(msg, err=False):
+        """统一输出：--json 时不打人类可读的字，避免污染 stdout。"""
+        if not a.json:
+            print(msg, file=sys.stderr if err else sys.stdout)
+
+    if a.doctor:
+        return doctor()
+    if not a.input or not a.output:
+        ap.error("--input 与 --output 都是必填（体检用 --doctor）")
 
     cfg = engine.Config()
     cfg.apply_overrides(
@@ -280,7 +339,7 @@ def main(argv=None):
 
     # 1) 生成架构图（若有）
     if spec.get("diagrams") and not a.no_prep:
-        print("生成架构图：")
+        say("生成架构图：")
         for item in spec["diagrams"]:
             out_rel = item.get("out") or f"{item.get('name', 'diagram')}.png"
             if str(item.get("tool", "")).lower() == "archify":
@@ -290,24 +349,25 @@ def main(argv=None):
                     path, w, h = archify_bridge.render(
                         item["archify"], os.path.join(out_root, out_rel),
                         item.get("quality", "showcase"))
-                    print(f"  ✓ {path}  {w}×{h}  (archify)")
+                    say(f"  ✓ {path}  {w}×{h}  (archify)")
                 except Exception as exc:                  # noqa: BLE001
-                    print(f"  ✗ {out_rel}  archify 渲染失败：{exc}", file=sys.stderr)
+                    say(f"  ✗ {out_rel}  archify 渲染失败：{exc}", err=True)
                     return 1
             else:
                 # 默认后端：内置 Pillow 渲染器（零外部依赖）
                 for path, w, h in diagram_mod.generate({"diagrams": [item]}, out_root):
-                    print(f"  ✓ {path}  {w}×{h}")
+                    say(f"  ✓ {path}  {w}×{h}")
 
     files, in_root = collect_md(a.input, a.only)
     if not files:
-        print("没有找到匹配的 Markdown 文件", file=sys.stderr)
+        say("没有找到匹配的 Markdown 文件", err=True)
         return 1
 
     tmp = tempfile.mkdtemp(prefix="md2office-")
     prepared_dir = os.path.join(tmp, "prepared")
     images_abs_dir = out_root
     total = {"docx": 0, "pdf": 0}
+    records = []
 
     try:
         for src in files:
@@ -324,7 +384,7 @@ def main(argv=None):
                 st = prepare(src, tgt, spec, images_abs_dir)
                 work_md = tgt
                 if st["img"] or st["list"]:
-                    print(f"  预处理 {os.path.basename(src)}: "
+                    say(f"  预处理 {os.path.basename(src)}: "
                           f"替换图片 {st['img']} 处、去围栏 {st['list']} 处")
 
             # 3) DOCX
@@ -335,27 +395,37 @@ def main(argv=None):
             hit_docx = os.path.exists(docx_path) and (a.format != "pdf" or a.keep_intermediate)
             hit_pdf = os.path.exists(pdf_path) and a.format in ("pdf", "both")
             if a.no_overwrite and (hit_docx or hit_pdf):
-                print(f"  = 跳过（已存在）：{os.path.join(sub, stem)}")
+                say(f"  = 跳过（已存在）：{os.path.join(sub, stem)}")
+                records.append({"src": rel, "status": "skipped", "docx": None, "pdf": None, "warnings": []})
                 continue
+            warns = []
             for hit, name in ((hit_docx, stem + ".docx"), (hit_pdf, stem + ".pdf")):
                 if hit:
-                    print(f"  ⚠ 覆盖已有文件：{os.path.join(sub, name)}")
+                    say(f"  ⚠ 覆盖已有文件：{os.path.join(sub, name)}")
+                    warns.append(f"覆盖 {name}")
             if a.format == "pdf" and not a.keep_intermediate:
                 tmp_docx = os.path.join(tmp, "docx", sub, stem + ".docx")
                 engine.convert(work_md, tmp_docx, cfg)
                 docx_for_pdf = tmp_docx
-                print(f"  · {rel} → (中间 DOCX)")
+                say(f"  · {rel} → (中间 DOCX)")
             else:
                 engine.convert(work_md, docx_path, cfg)
                 docx_for_pdf = docx_path
                 total["docx"] += 1
-                print(f"  ✓ {os.path.join(sub, stem + '.docx')}")
+                say(f"  ✓ {os.path.join(sub, stem + '.docx')}")
 
             # 4) PDF
             if a.format in ("pdf", "both"):
                 docx_to_pdf(docx_for_pdf, pdf_path)
                 total["pdf"] += 1
-                print(f"  ✓ {os.path.join(sub, stem + '.pdf')}")
+                say(f"  ✓ {os.path.join(sub, stem + '.pdf')}")
+            records.append({
+                "src": rel,
+                "status": "ok",
+                "docx": os.path.join(sub, stem + ".docx") if a.format != "pdf" or a.keep_intermediate else None,
+                "pdf": os.path.join(sub, stem + ".pdf") if a.format in ("pdf", "both") else None,
+                "warnings": warns,
+            })
 
         if a.keep_prepared and os.path.isdir(prepared_dir):
             shutil.copytree(prepared_dir, os.path.join(out_root, "_prepared"),
@@ -363,8 +433,15 @@ def main(argv=None):
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
-    print(f"\n完成：格式={a.format}  DOCX {total['docx']} 个，PDF {total['pdf']} 个")
-    print(f"输出目录：{out_root}")
+    say(f"\n完成：格式={a.format}  DOCX {total['docx']} 个，PDF {total['pdf']} 个")
+    say(f"输出目录：{out_root}")
+    if a.json:
+        print(json.dumps({
+            "format": a.format,
+            "output": out_root,
+            "counts": total,
+            "files": records,
+        }, ensure_ascii=False, indent=2))
     return 0
 
 
