@@ -49,6 +49,19 @@ jobs:
           python scripts/gongwen.py render --template blank --data /tmp/d.json --out /tmp/成文.docx
           python scripts/gongwen.py check /tmp/成文.docx --template blank
 
+      - name: 演示素材可重新生成（ASCII 图 → 真框图）
+        if: matrix.python == '3.11'
+        run: |
+          python tools/make_convert_gif.py --out /tmp/convert.gif
+          test -s /tmp/convert.gif
+          python - <<'PY'
+          from PIL import Image
+          im = Image.open('/tmp/convert.gif')
+          assert im.n_frames >= 20, im.n_frames
+          assert im.size[0] >= 1000, im.size
+          print("演示素材 OK：", im.size, im.n_frames, "帧")
+          PY
+
       - name: 断言产物不是空壳（标题/表格/字符画都在）
         run: |
           python - <<'PY'

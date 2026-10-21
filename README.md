@@ -4,9 +4,11 @@
 
 把 Markdown 转成排版规范的中文 **Word（.docx）** 与／或 **PDF**，可选地生成**分层架构图**并把稿内的 **ASCII 字符画自动替换**成真正的图。
 
-![转换前 / 转换后](docs/before-after.png)
+[![ASCII 图 → 真框图：四格故事板（点击看动图）](docs/demo-convert-story.png)](docs/demo-convert.gif)
 
-<sub>左边是稿子里的样子（等宽字体下能对齐），右边是转换后的**真实 PNG**（由 `scripts/diagram.py` 按 `md2office.spec.json` 渲染）。`python3 tools/make_before_after.py` 可重新生成这张图。</sub>
+<sub>**首屏是静图**（四格：原文 → Word 里散架 → 按 spec 生成真图 → 交付）；**点图看完整动图**（1320×816，约 3.3MB）。
+右栏的图由 `scripts/diagram.py` 按 [`examples/demo/convert.spec.json`](examples/demo/convert.spec.json) **真实渲染**，不是画上去的示意图。
+复跑：`python3 tools/make_convert_gif.py --out docs/demo-convert.gif`。</sub>
 
 两种用法：**当命令行工具直接用**，或**作为 Agent Skill 安装**（Claude Code / Codex / DSH 等），让 AI 自动调用。写方案、出报告、做交付物都适用。
 
@@ -27,6 +29,12 @@ git clone https://github.com/darkknight110/md-to-office.git ~/.md-to-office \
 > 52 份真实交付物的实测值与国标公文的差距都在 [docs/typography-baseline.md](docs/typography-baseline.md)（机器可读：[typography-baseline.json](docs/typography-baseline.json)）。
 
 ---
+
+## 静态对比
+
+![转换前 / 转换后](docs/before-after.png)
+
+<sub>同一份架构信息：左边是稿子里的字符画，右边是转换后的真实 PNG。`python3 tools/make_before_after.py` 可重新生成。</sub>
 
 ## 为什么需要它
 
@@ -246,7 +254,8 @@ md-to-office/
 │   └── spec.example.json            规格示例
 ├── tools/
 │   ├── measure_typography.py        排版量测（PDF/DOCX → JSON，基线可复跑）
-│   └── make_before_after.py         生成 docs/before-after.png（视觉证据可复跑）
+│   ├── make_before_after.py         生成 docs/before-after.png（静态对比）
+│   └── make_convert_gif.py          生成 docs/demo-convert.gif（动画，真实渲染）
 ├── docs/
 │   ├── typography-baseline.md       排版基线：52 份实测 vs GB/T 9704-2012
 │   ├── typography-baseline.json     机器可读基线（profiles / gaps / limits）
@@ -255,6 +264,7 @@ md-to-office/
 │   └── before-after.png             转换前后对比图
 ├── examples/
 │   ├── demo/sample.md               冒烟用样例（CI 真实转换）
+│   ├── demo/convert.spec.json       演示用图规格（真实渲染进动画）
 │   └── gongwen/make_blank_template.py  生成空白公文模板（无红头、无单位信息）
 └── tests/
     ├── test_smoke.py                冒烟测试（stdlib unittest）
