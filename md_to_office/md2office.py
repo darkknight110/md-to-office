@@ -244,6 +244,10 @@ def main(argv=None):
     ap.add_argument("--size-table", type=float)
     ap.add_argument("--page", choices=["a4", "letter"], default="a4")
     ap.add_argument("--no-footer", action="store_true")
+    ap.add_argument("--no-overwrite", action="store_true",
+                    help="目标已存在时跳过，不覆盖（默认覆盖并提示）")
+    from . import __version__
+    ap.add_argument("--version", action="version", version=f"md-to-office {__version__}")
     a = ap.parse_args(argv)
 
     cfg = engine.Config()
@@ -325,6 +329,17 @@ def main(argv=None):
 
             # 3) DOCX
             docx_path = os.path.join(dest_dir, stem + ".docx")
+            pdf_path = os.path.join(dest_dir, stem + ".pdf")
+
+            # 交付物最怕"静默覆盖"：默认覆盖但必须提示；--no-overwrite 时整份跳过
+            hit_docx = os.path.exists(docx_path) and (a.format != "pdf" or a.keep_intermediate)
+            hit_pdf = os.path.exists(pdf_path) and a.format in ("pdf", "both")
+            if a.no_overwrite and (hit_docx or hit_pdf):
+                print(f"  = 跳过（已存在）：{os.path.join(sub, stem)}")
+                continue
+            for hit, name in ((hit_docx, stem + ".docx"), (hit_pdf, stem + ".pdf")):
+                if hit:
+                    print(f"  ⚠ 覆盖已有文件：{os.path.join(sub, name)}")
             if a.format == "pdf" and not a.keep_intermediate:
                 tmp_docx = os.path.join(tmp, "docx", sub, stem + ".docx")
                 engine.convert(work_md, tmp_docx, cfg)
@@ -338,7 +353,6 @@ def main(argv=None):
 
             # 4) PDF
             if a.format in ("pdf", "both"):
-                pdf_path = os.path.join(dest_dir, stem + ".pdf")
                 docx_to_pdf(docx_for_pdf, pdf_path)
                 total["pdf"] += 1
                 print(f"  ✓ {os.path.join(sub, stem + '.pdf')}")

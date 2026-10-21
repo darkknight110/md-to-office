@@ -146,6 +146,8 @@ SK="<本仓库>/scripts"
 | `--no-prep` | 跳过预处理 | 否 |
 | `--keep-intermediate` | `pdf` 模式保留中间 `.docx` | 否 |
 | `--keep-prepared` | 保留预处理后的 md（便于排查） | 否 |
+| `--no-overwrite` | 目标已存在时跳过（默认覆盖但会逐条提示） | 否 |
+| `--version` | 打印版本 | — |
 | `--font-body` | 正文中文字体 | `宋体` |
 | `--font-heading` | 标题中文字体 | `微软雅黑` |
 | `--font-code` | 代码字体 | `Consolas` |

@@ -431,7 +431,9 @@ def cmd_check(args) -> int:
 # ─────────────────────────── CLI ───────────────────────────
 
 def main(argv=None) -> int:
+    from . import __version__
     ap = argparse.ArgumentParser(description="公文模板引擎（模板固化，不生成红头）")
+    ap.add_argument("--version", action="version", version=f"md-to-office {__version__}（gongwen）")
     ap.add_argument("--store", help="模板库目录（默认 $GONGWEN_HOME 或 ~/.md-to-office/templates）")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
