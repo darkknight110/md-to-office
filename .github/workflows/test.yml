@@ -44,3 +44,36 @@ jobs:
           assert len(d.tables) >= 1, "表格丢了"
           print("产物检查通过：段落", len(d.paragraphs), "表格", len(d.tables))
           PY
+
+  # PDF 路径单独一个 job：LibreOffice 体积大，只跑一个 Python 版本，不拖慢主矩阵。
+  pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: LibreOffice（PDF 后端）+ 中文字体
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libreoffice-writer fonts-noto-cjk
+          soffice --version | head -1
+      - name: 依赖
+        run: python -m pip install -q -r requirements.txt pypdf
+      - name: 真实转出 PDF（走 soffice 后端）
+        run: |
+          mkdir -p /tmp/pdfout
+          python scripts/md2office.py --input examples/demo/sample.md --output /tmp/pdfout --format pdf
+          ls -l /tmp/pdfout
+          test -s /tmp/pdfout/sample.pdf
+      - name: 断言 PDF 可读且不是空白
+        run: |
+          python - <<'PY'
+          from pypdf import PdfReader
+          r = PdfReader('/tmp/pdfout/sample.pdf')
+          assert len(r.pages) >= 1, "没有页"
+          text = "".join((p.extract_text() or "") for p in r.pages)
+          assert "示例文档" in text, "PDF 里没有正文（可能是空白页）"
+          print("PDF 检查通过：页数", len(r.pages), "字符", len(text))
+          PY
