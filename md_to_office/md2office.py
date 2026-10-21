@@ -273,29 +273,44 @@ def doctor() -> int:
     return 0 if hard_ok else 1
 
 
+_LANG = "zh"
+
+
+def _t(zh: str, en: str) -> str:
+    return en if _LANG == "en" else zh
+
+
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Markdown → Word / PDF 统一转换")
-    ap.add_argument("--input", help="输入的 .md 文件或目录（递归）")
-    ap.add_argument("--output", help="输出目录")
-    ap.add_argument("--doctor", action="store_true", help="体检本机环境（字体 / LibreOffice / 依赖），不转换")
-    ap.add_argument("--json", action="store_true", help="机器可读输出（转换结果汇总）")
+    global _LANG
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if "--lang" in argv:
+        i = argv.index("--lang")
+        if i + 1 < len(argv) and argv[i + 1] == "en":
+            _LANG = "en"
+    ap = argparse.ArgumentParser(description=_t("Markdown → Word / PDF 统一转换",
+                                                "Convert Markdown to Word / PDF"))
+    ap.add_argument("--input", help=_t("输入的 .md 文件或目录（递归）", "Input .md file or directory (recursive)"))
+    ap.add_argument("--output", help=_t("输出目录", "Output directory"))
+    ap.add_argument("--doctor", action="store_true", help=_t("体检本机环境（字体 / LibreOffice / 依赖），不转换", "Check local environment (fonts / LibreOffice / deps) without converting"))
+    ap.add_argument("--json", action="store_true", help=_t("机器可读输出（转换结果汇总）", "Machine-readable summary"))
     ap.add_argument("--format", choices=["docx", "pdf", "both"], default="both")
-    ap.add_argument("--only", action="append", default=[], help="文件名通配，可重复")
-    ap.add_argument("--spec", help="规格 JSON（架构图 + 字符画替换规则）")
-    ap.add_argument("--no-prep", action="store_true", help="跳过预处理")
+    ap.add_argument("--only", action="append", default=[], help=_t("文件名通配，可重复", "Filename glob, repeatable"))
+    ap.add_argument("--spec", help=_t("规格 JSON（架构图 + 字符画替换规则）", "Spec JSON (diagrams + ASCII-art replacement)"))
+    ap.add_argument("--no-prep", action="store_true", help=_t("跳过预处理", "Skip preprocessing"))
     ap.add_argument("--keep-intermediate", action="store_true",
-                    help="pdf-only 时保留中间 .docx")
-    ap.add_argument("--keep-prepared", action="store_true", help="保留预处理后的 md")
-    ap.add_argument("--font-body", help="正文中文字体（默认 宋体）")
-    ap.add_argument("--font-heading", help="标题中文字体（默认 微软雅黑）")
-    ap.add_argument("--font-code", help="代码字体（默认 Consolas）")
+                    help=_t("pdf-only 时保留中间 .docx", "Keep intermediate .docx for pdf-only"))
+    ap.add_argument("--keep-prepared", action="store_true", help=_t("保留预处理后的 md", "Keep preprocessed .md"))
+    ap.add_argument("--font-body", help=_t("正文中文字体（默认 宋体）", "Body CJK font (default: SimSun)"))
+    ap.add_argument("--font-heading", help=_t("标题中文字体（默认 微软雅黑）", "Heading CJK font (default: Microsoft YaHei)"))
+    ap.add_argument("--font-code", help=_t("代码字体（默认 Consolas）", "Code font (default: Consolas)"))
     ap.add_argument("--size-body", type=float)
     ap.add_argument("--size-table", type=float)
     ap.add_argument("--page", choices=["a4", "letter"], default="a4")
     ap.add_argument("--no-footer", action="store_true")
     ap.add_argument("--no-overwrite", action="store_true",
-                    help="目标已存在时跳过，不覆盖（默认覆盖并提示）")
+                    help=_t("目标已存在时跳过，不覆盖（默认覆盖并提示）", "Skip when target exists (default: overwrite with a warning)"))
     from . import __version__
+    ap.add_argument("--lang", choices=["zh", "en"], default="zh", help=_t("帮助与提示语言", "Help/message language"))
     ap.add_argument("--version", action="version", version=f"md-to-office {__version__}")
     a = ap.parse_args(argv)
 
@@ -307,7 +322,8 @@ def main(argv=None):
     if a.doctor:
         return doctor()
     if not a.input or not a.output:
-        ap.error("--input 与 --output 都是必填（体检用 --doctor）")
+        ap.error(_t("--input 与 --output 都是必填（体检用 --doctor）",
+                    "--input and --output are required (use --doctor to inspect the environment)"))
 
     cfg = engine.Config()
     cfg.apply_overrides(

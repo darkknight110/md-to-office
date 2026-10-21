@@ -47,6 +47,12 @@ class TestCliContract(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertRegex(r.stdout.strip(), r"^md-to-office \d+\.\d+\.\d+")
 
+    def test_lang_en_help(self):
+        en = run("--lang", "en", "--help")
+        self.assertIn("Convert Markdown to Word", en.stdout)
+        zh = run("--help")
+        self.assertIn("统一转换", zh.stdout)
+
     def test_no_overwrite_keeps_existing_file(self):
         with tempfile.TemporaryDirectory() as td:
             src = os.path.join(td, "a.md")

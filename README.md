@@ -22,6 +22,8 @@
 >
 > 三个都是 MIT、本地运行；本文是 **md-to-office** 的完整操作指南（安装 → 走一遍 → 排错）。
 
+> **平台**：macOS / Linux / Windows（Python ≥ 3.9）。PDF 需要 LibreOffice；架构图需要中文字体。
+
 ## 一行装好
 
 ```bash
@@ -153,6 +155,7 @@ SK="<本仓库>/scripts"
 | `--version` | 打印版本 | — |
 | `--doctor` | 体检本机环境（依赖 / 中文字体 / LibreOffice），不转换 | — |
 | `--json` | 机器可读输出（文件、计数、警告） | 否 |
+| `--lang` | `zh` / `en`（帮助与提示；正文输出仍为中文） | `zh` |
 | `--font-body` | 正文中文字体 | `宋体` |
 | `--font-heading` | 标题中文字体 | `微软雅黑` |
 | `--font-code` | 代码字体 | `Consolas` |
