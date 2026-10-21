@@ -233,7 +233,8 @@ class TestStrictAndFonts(unittest.TestCase):
             self.assertFalse(os.path.exists(out), "strict 下不应写出带占位符的文件")
 
     def test_字体检测有依据(self):
-        # 未知字体只能回答"不知道"，不能假装知道
-        self.assertIsNone(gongwen.font_available("不存在的字体XYZ"))
+        # 未知字体：有 fc-list 的机器能确定"没有"（False）；没工具的机器只能回答 None。
+        # 两者都比"假装有"诚实 —— 断言不允许 True。
+        self.assertIn(gongwen.font_available("不存在的字体XYZ"), (False, None))
         # 常见字体给的是 True/False，而不是 None
         self.assertIn(gongwen.font_available("宋体"), (True, False))
