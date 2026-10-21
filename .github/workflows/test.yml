@@ -65,6 +65,16 @@ jobs:
           print("演示素材 OK：", im.size, im.n_frames, "帧")
           PY
 
+      - name: 演示素材新鲜度（首屏图与动图都在，且不是占位文件）
+        if: matrix.python == '3.11'
+        run: |
+          python - <<'PY'
+          import os
+          for p, low in (("docs/demo-convert.gif", 200_000), ("docs/demo-convert-story.png", 100_000)):
+              assert os.path.getsize(p) > low, f"{p} 太小，可能是占位/过期素材"
+          print("演示素材 OK")
+          PY
+
       - name: 断言产物不是空壳（标题/表格/字符画都在）
         run: |
           python - <<'PY'
