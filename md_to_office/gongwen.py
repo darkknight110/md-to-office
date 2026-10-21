@@ -455,6 +455,8 @@ def cmd_check(args) -> int:
 # ─────────────────────────── CLI ───────────────────────────
 
 def main(argv=None) -> int:
+    from . import utf8_stdio
+    utf8_stdio()
     from . import __version__
     ap = argparse.ArgumentParser(description="公文模板引擎（模板固化，不生成红头）")
     ap.add_argument("--version", action="version", version=f"md-to-office {__version__}（gongwen）")

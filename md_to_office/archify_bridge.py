@@ -181,6 +181,8 @@ def _explain(result, stage: str = "finalize") -> str:
 
 
 def main(argv=None):
+    from . import utf8_stdio
+    utf8_stdio()
     import argparse
     ap = argparse.ArgumentParser(description="用 archify 渲染一张图并导出 PNG")
     ap.add_argument("--spec", required=True, help="archify JSON-IR 规格文件")

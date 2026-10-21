@@ -272,6 +272,8 @@ def generate(spec: dict, out_dir: str, font_override: str | None = None) -> list
 
 
 def main(argv=None):
+    from . import utf8_stdio
+    utf8_stdio()
     ap = argparse.ArgumentParser(description="分层架构图生成器（数据驱动）")
     ap.add_argument("--spec", required=True, help="JSON 规格文件")
     ap.add_argument("--out-dir", default=".", help="输出根目录（规格中的 out 相对此目录）")

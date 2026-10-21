@@ -399,6 +399,8 @@ _SIZE_KEYS = {"size-body": "body_size", "size-table": "table_size"}
 
 
 def main(argv=None):
+    from . import utf8_stdio
+    utf8_stdio()
     import argparse
 
     ap = argparse.ArgumentParser(description="Markdown → DOCX（可配置）")

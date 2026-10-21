@@ -281,6 +281,8 @@ def _t(zh: str, en: str) -> str:
 
 
 def main(argv=None):
+    from . import utf8_stdio
+    utf8_stdio()
     global _LANG
     argv = list(sys.argv[1:] if argv is None else argv)
     if "--lang" in argv:
