@@ -14,6 +14,14 @@
 
 > 只出 Word 时**不需要任何外部二进制**，只依赖 `python-docx` 与 `Pillow`。
 
+> **同一套三件工具**（可单独用，也可以串起来）：
+>
+> - **[md-to-office](https://github.com/darkknight110/md-to-office)** —— 把 Markdown 变成能发出去的 Word/PDF（真框图、公文模板）
+> - **[deliverable-check](https://github.com/darkknight110/deliverable-check)** —— 发出去之前体检：数据会不会被算错、方案骨架够不够
+> - **[devflow-kit](https://github.com/darkknight110/devflow-kit)** —— 让「能不能发布」由门禁决定，而不是靠感觉
+>
+> 三个都是 MIT、本地运行；本文是 **md-to-office** 的完整操作指南（安装 → 走一遍 → 排错）。
+
 ## 一行装好
 
 ```bash
@@ -37,12 +45,6 @@ gongwen template add 某单位模板.docx --name 某单位
 
 ---
 
-## 静态对比
-
-![转换前 / 转换后](docs/before-after.png)
-
-<sub>同一份架构信息：左边是稿子里的字符画，右边是转换后的真实 PNG。`python3 tools/make_before_after.py` 可重新生成。</sub>
-
 ## 为什么需要它
 
 Markdown 里的架构图通常是用字符画的：
@@ -57,7 +59,54 @@ Markdown 里的架构图通常是用字符画的：
 
 ---
 
-## 快速开始
+## 静态对比
+
+![转换前 / 转换后](docs/before-after.png)
+
+<sub>同一份架构信息：左边是稿子里的字符画，右边是转换后的真实 PNG。`python3 tools/make_before_after.py` 可重新生成。</sub>
+
+## 5 分钟走一遍（复制即用）
+
+```bash
+# 1) 装（装完是可执行命令，不需要 python 前缀）
+pipx install git+https://github.com/darkknight110/md-to-office.git
+
+# 2) 用你自己的稿子（想先试：git clone 仓库后用 examples/demo/sample.md）
+md2office --input 你的方案.md --output out --format docx
+```
+
+**期望**：`out/你的方案.docx` 生成成功。如果稿里有 `┌─┐` 字符画，**没给 spec 时会原样保留**——这是有意的，
+不静默删除（删除比保留更危险：你会以为图还在）。
+
+```bash
+# 3) 给字符画一张"真图"的规格：它会被替换成渲染出来的 PNG
+#    （spec 样例在仓库的 examples/demo/convert.spec.json；拷到你自己的目录再改）
+md2office --input 你的方案.md --spec convert.spec.json --output out2 --format docx
+```
+
+**期望**：`out2/diagrams/*.png` 出现，docx 里对应那段变成图片。规格写法见「[架构图规格](#架构图规格)」。
+
+```bash
+# 4) 公文模板（可选，需要你自己单位的模板）
+gongwen template add 某单位模板.docx --name 某单位
+gongwen template show 某单位          # 先核对读到的版心/字号/占位符
+gongwen render --template 某单位 --data data.json --out 成文.docx
+```
+
+**期望**：`template show` 输出模板的版心、字号、行距、占位符；`render` 后自动与模板参数比对，不一致会报错。
+详见 [docs/gongwen.md](docs/gongwen.md)。
+
+### 排错
+
+| 现象 | 原因 | 处理 |
+|---|---|---|
+| `pipx: command not found` | 没装 pipx | `python3 -m pip install --user pipx && pipx ensurepath`，重开终端 |
+| `--format pdf` 报找不到 LibreOffice | PDF 由 `soffice` 转，不是 pip 依赖 | 只出 Word：`--format docx`；或装 LibreOffice |
+| `找不到中文字体` | 最小 Linux 镜像没有 CJK 字体 | `apt-get install -y fonts-noto-cjk`，或 `--font <路径>` |
+| 字符画没被替换 | spec 没给，或块里缺 spec 的关键词 | 看「架构图规格」的匹配条件；`--keep-prepared` 可看预处理后的 md |
+| docx 里中文变方块 | 打开文档的机器缺字体 | 在渲染机装宋体/微软雅黑，或换 `--font-body` |
+
+## 更多转换用法
 
 ```bash
 PY="python3"                    # 或你的虚拟环境解释器
