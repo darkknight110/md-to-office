@@ -161,6 +161,28 @@ def measure_docx(path: str) -> DocStat:
         }
     sizes = Counter()
     heading_sizes = Counter()
+
+    def size_of(run, para):
+        """字号可能来自 4 个地方：run 直设 / 字符样式 / 段落样式 / Normal。
+
+        踩过的坑：只读 run.font.size 时，**用段落样式排版的模板**全部读不到字号
+        （产物被报成 None）—— 而那恰恰是最规范的一类模板。
+        """
+        for cand in (
+            run.font.size,
+            getattr(getattr(run, "style", None), "font", None) and run.style.font.size,
+            getattr(getattr(para, "style", None), "font", None) and para.style.font.size,
+        ):
+            if cand:
+                return round(cand.pt, 1)
+        try:
+            normal = d.styles["Normal"]
+            if normal.font.size:
+                return round(normal.font.size.pt, 1)
+        except KeyError:
+            pass
+        return None
+
     for p in d.paragraphs:
         text = p.text.strip()
         if not text:
@@ -168,10 +190,7 @@ def measure_docx(path: str) -> DocStat:
         for r in p.runs:
             if not r.text.strip():
                 continue
-            pt = round(r.font.size.pt, 1) if r.font.size else None
-            if pt is None:
-                style = r.style.font.size if r.style and r.style.font else None
-                pt = round(style.pt, 1) if style else None
+            pt = size_of(r, p)
             if pt is None:
                 continue
             sizes[pt] += len(r.text)

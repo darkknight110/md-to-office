@@ -31,6 +31,24 @@ jobs:
           mkdir -p /tmp/out
           python scripts/md2office.py --input examples/demo/sample.md --output /tmp/out --format docx
           test -s /tmp/out/sample.docx
+      - name: 公文模板端到端（生成模板→登记→填充→校验）
+        if: matrix.python == '3.11'
+        run: |
+          export GONGWEN_HOME=/tmp/gwstore
+          python examples/gongwen/make_blank_template.py --out /tmp/blank.docx
+          python scripts/gongwen.py template add /tmp/blank.docx --name blank
+          python - <<'PY'
+          import json
+          data = {
+              "标题": "测试通知", "主送机关": "各处室：",
+              "正文": "第一段。\n第二段。", "附件说明": "附件：无",
+              "成文日期": "2026年10月21日", "版记": "抄送：办公室。",
+          }
+          json.dump(data, open("/tmp/d.json", "w"), ensure_ascii=False)
+          PY
+          python scripts/gongwen.py render --template blank --data /tmp/d.json --out /tmp/成文.docx
+          python scripts/gongwen.py check /tmp/成文.docx --template blank
+
       - name: 断言产物不是空壳（标题/表格/字符画都在）
         run: |
           python - <<'PY'

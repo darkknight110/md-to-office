@@ -242,6 +242,7 @@ md-to-office/
 │   ├── md2docx.py                   转换引擎（可 import）
 │   ├── diagram.py                   架构图生成（内置 Pillow 渲染器）
 │   ├── archify_bridge.py            可选：调用 archify 渲染复杂图型
+│   ├── gongwen.py                   公文模板引擎（template add/show → render → check）
 │   └── spec.example.json            规格示例
 ├── tools/
 │   ├── measure_typography.py        排版量测（PDF/DOCX → JSON，基线可复跑）
@@ -249,9 +250,15 @@ md-to-office/
 ├── docs/
 │   ├── typography-baseline.md       排版基线：52 份实测 vs GB/T 9704-2012
 │   ├── typography-baseline.json     机器可读基线（profiles / gaps / limits）
+│   ├── gongwen.md                   公文模板：用法与边界
+│   ├── gongwen-review.md            公文模板：复核记录（实测数字 + 已知限制）
 │   └── before-after.png             转换前后对比图
+├── examples/
+│   ├── demo/sample.md               冒烟用样例（CI 真实转换）
+│   └── gongwen/make_blank_template.py  生成空白公文模板（无红头、无单位信息）
 └── tests/
-    └── test_smoke.py                冒烟测试（stdlib unittest）
+    ├── test_smoke.py                冒烟测试（stdlib unittest）
+    └── test_gongwen.py              公文模板引擎测试
 ```
 
 ---
@@ -284,8 +291,23 @@ PDF 需要额外装 LibreOffice（见「已知限制」第 2 条）。
 ## 测试
 
 ```bash
-python3 -m unittest discover -s tests -v
+python3 -m unittest discover -s tests -v     # 25 例：13 冒烟 + 12 公文模板
 ```
+
+## 公文模板（L2：模板固化）
+
+**它不是"生成公文"，是"按你的模板填内容"**：版心/字号/行距/页码/红头/版记/印章位都由模板带来。
+
+```bash
+python3 scripts/gongwen.py template add 某单位模板.docx --name 某单位
+python3 scripts/gongwen.py template show 某单位
+python3 scripts/gongwen.py render --template 某单位 --data data.json --body 正文.md --out 成文.docx
+python3 scripts/gongwen.py check 成文.docx --template 某单位
+```
+
+- 生成时校验模板 sha256（换过就拒绝）、缺失占位符就拒绝、产物自动量一遍（边距/字号/行距/缩进）；
+- **不生成红头、版记、印章**；印章只留位置；
+- 用法与边界：[docs/gongwen.md](docs/gongwen.md)；复核记录（含两个被修掉的缺陷）：[docs/gongwen-review.md](docs/gongwen-review.md)。
 
 ## 校验（可选）
 
