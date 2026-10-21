@@ -52,10 +52,30 @@ def sha256(path: str) -> str:
 
 # ─────────────────────────── 检查 ───────────────────────────
 
+# 常见中文字体 → 各平台上的字体文件。命中就敢说"有/没有"，不命中才退化为"不确定"。
+FONT_FILES = {
+    "宋体": ["/System/Library/Fonts/Supplemental/Songti.ttc", "C:/Windows/Fonts/simsun.ttc",
+             "/usr/share/fonts/truetype/arphic/uming.ttc"],
+    "仿宋": ["/System/Library/Fonts/Supplemental/STFangsong.ttf", "C:/Windows/Fonts/simfang.ttf",
+             "/usr/share/fonts/truetype/arphic/ukai.ttc"],
+    "楷体": ["/System/Library/Fonts/Supplemental/Kaiti.ttc", "C:/Windows/Fonts/simkai.ttf"],
+    "黑体": ["/System/Library/Fonts/STHeiti Light.ttc", "C:/Windows/Fonts/simhei.ttf"],
+    "微软雅黑": ["C:/Windows/Fonts/msyh.ttc"],
+    "方正小标宋简体": ["C:/Windows/Fonts/FZXBSJW.ttf"],
+    "苹方": ["/System/Library/Fonts/PingFang.ttc"],
+}
+
+
 def font_available(name: str) -> bool | None:
-    """本机是否有这个字体。返回 None 表示无法判断（不假装知道）。"""
+    """本机是否有这个字体。
+
+    返回 False 是**有依据的"没有"**（常见字体，按系统文件判断）；
+    返回 None 才是"无法判断"——不假装知道，也不把不知道说成没有。
+    """
     if not name:
         return None
+    if name in FONT_FILES:
+        return any(os.path.exists(p) for p in FONT_FILES[name])
     try:
         import subprocess
         out = subprocess.run(["fc-list", ":lang=zh", "family"], capture_output=True, text=True, timeout=5)
@@ -63,9 +83,6 @@ def font_available(name: str) -> bool | None:
             return name.lower() in out.stdout.lower()
     except (FileNotFoundError, subprocess.SubprocessError):
         pass
-    if sys.platform == "darwin":
-        # macOS 没有 fc-list；用 system_profiler 太慢，退化为"无法确认"
-        return None
     return None
 
 
@@ -331,6 +348,10 @@ def cmd_render(args) -> int:
         with open(args.body, encoding="utf-8") as fh:
             data.setdefault("正文", fh.read())
 
+    unknown = sorted(set(data) - set(m["placeholders"]))
+    if args.strict and unknown:
+        raise SystemExit(f"数据里有模板未声明的字段：{', '.join(unknown)}（拼错了？去掉 --strict 可忽略）")
+
     required = [p for p in m["placeholders"] if p not in data]
     if required and not args.allow_missing:
         raise SystemExit(f"缺少必填占位符：{', '.join(required)}\n  （确实要留空请加 --allow-missing）")
@@ -373,6 +394,9 @@ def cmd_render(args) -> int:
     # 生成前的最后一道：产物里不得残留 {{占位符}}。
     # 交付一份带 {{姓名}} 的公文比报错难看得多，而它"看起来是成功的"。
     left = sorted({m.group(1) for p in _iter_paragraphs(d) for m in PLACEHOLDER.finditer(p.text)})
+    if left and args.strict:
+        # strict 下不写文件；留一份带占位符的成文比报错更难发现
+        raise SystemExit(f"仍残留占位符：{', '.join(left)}（strict 模式不生成文件）")
     d.save(out)
     print(f"✓ 已生成：{out}（补了 {inserted} 段）")
     if left:
@@ -459,6 +483,8 @@ def main(argv=None) -> int:
     r.add_argument("--out", required=True)
     r.add_argument("--allow-missing", action="store_true")
     r.add_argument("--allow-drift", action="store_true")
+    r.add_argument("--strict", action="store_true",
+                   help="未知字段或残留占位符一律报错（不生成文件）")
     r.set_defaults(func=cmd_render)
 
     c = sub.add_parser("check", help="校验产物是否还符合模板")

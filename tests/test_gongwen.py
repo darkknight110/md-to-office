@@ -204,3 +204,36 @@ class TestBodyParagraphs(unittest.TestCase):
             self.assertIn("第一段", texts)
             self.assertIn("第二段", texts)
             self.assertNotIn("", texts[1:-1], "正文里的空行不应变成空段落")
+
+
+class TestStrictAndFonts(unittest.TestCase):
+    def _setup(self, td):
+        tpl = build_template(os.path.join(td, "tpl.docx"))
+        store = os.path.join(td, "store")
+        gongwen.main(["--store", store, "template", "add", tpl, "--name", "t"])
+        return store
+
+    def test_strict_拒绝未知字段(self):
+        with tempfile.TemporaryDirectory() as td:
+            store = self._setup(td)
+            out = os.path.join(td, "o.docx")
+            with self.assertRaises(SystemExit):
+                gongwen.main(["--store", store, "render", "--template", "t", "--strict",
+                              "--field", "标题=x", "--field", "拼错的字段=y",
+                              "--field", "主送机关=z", "--field", "正文=w",
+                              "--field", "成文日期=d", "--out", out])
+
+    def test_strict_残留占位符不生成文件(self):
+        with tempfile.TemporaryDirectory() as td:
+            store = self._setup(td)
+            out = os.path.join(td, "o.docx")
+            with self.assertRaises(SystemExit):
+                gongwen.main(["--store", store, "render", "--template", "t", "--strict",
+                              "--field", "标题=x", "--allow-missing", "--out", out])
+            self.assertFalse(os.path.exists(out), "strict 下不应写出带占位符的文件")
+
+    def test_字体检测有依据(self):
+        # 未知字体只能回答"不知道"，不能假装知道
+        self.assertIsNone(gongwen.font_available("不存在的字体XYZ"))
+        # 常见字体给的是 True/False，而不是 None
+        self.assertIn(gongwen.font_available("宋体"), (True, False))
