@@ -22,7 +22,9 @@
 >
 > 三个都是 MIT、本地运行；本文是 **md-to-office** 的完整操作指南（安装 → 走一遍 → 排错）。
 
-> **平台**：macOS / Linux / Windows（Python ≥ 3.9）。PDF 需要 LibreOffice；架构图需要中文字体。
+> **平台**：macOS / Linux / Windows（Python ≥ 3.9）。
+> Windows 上已跑真实转换冒烟（含中文/空格路径）；差异只在外部件：**PDF 需要 LibreOffice**，
+> **架构图需要中文字体**（Windows 自带宋体/微软雅黑，通常可直接用；仿宋需自行安装）。
 
 ## 一行装好
 

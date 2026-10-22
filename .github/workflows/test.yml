@@ -101,6 +101,14 @@ jobs:
         run: python -m pip install -q python-docx Pillow
       - name: 单元测试（无中文字体的用例会自动跳过）
         run: python -m unittest discover -s tests -v
+      - name: Windows 冒烟（真实转换 + 中文/空格路径）
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "交付 目录" | Out-Null
+          Copy-Item examples/demo/sample.md "交付 目录/方案 样例.md"
+          python scripts/md2office.py --input "交付 目录" --output "导出 目录" --format docx
+          if (-not (Test-Path "导出 目录/方案 样例.docx")) { throw "Windows 上未生成 docx" }
+          Write-Host "Windows 冒烟 OK"
 
   pdf:
     runs-on: ubuntu-latest
