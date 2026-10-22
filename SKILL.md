@@ -32,6 +32,9 @@ SK="<本技能目录>/scripts"
 "$PY" "$SK/md2office.py" --input ./方案.md --output ./导出 --format docx
 ```
 
+> 已经用 `pipx install md-to-office` 装过？直接用 `md2office --input … --output … --format docx`，
+> 并可先跑 `md2office --doctor` 体检环境（依赖 / 中文字体 / LibreOffice）。
+
 **Python 需要在带 `python-docx` 与 `Pillow` 的环境里跑。** 在 DSH 中，用
 `load_workspace_dependencies` 返回的 python 最省事（它已带这两个库）；在任何其他环境里，
 `pip install -r requirements.txt` 后用自己的解释器即可。**只出 Word 时不需要任何外部二进制。**
