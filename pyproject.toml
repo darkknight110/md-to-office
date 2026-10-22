@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "md-to-office"
-version = "1.0.1"
+version = "1.0.2"
 description = "Markdown → 排版规范的中文 Word/PDF；把稿内的 ASCII 字符画替换成真正的分层框图；附公文模板引擎"
 readme = "README.md"
 requires-python = ">=3.9"

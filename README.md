@@ -27,9 +27,8 @@
 ## 一行装好
 
 ```bash
-pipx install git+https://github.com/darkknight110/md-to-office.git
-# 或者：uv tool install git+https://github.com/darkknight110/md-to-office.git
-# PyPI 首发后即可：pipx install md-to-office
+pipx install md-to-office          # 已发布到 PyPI
+# 或者：uv tool install md-to-office
 ```
 
 装完直接用命令，不需要 `python` 前缀、也不需要 `requirements.txt`：
@@ -39,7 +38,7 @@ md2office --input ./文档 --output ./导出 --format docx
 gongwen template add 某单位模板.docx --name 某单位
 ```
 
-> 没有 pipx/uv？退回 `python3 -m pip install --user git+https://…` 也一样，只是入口在 `~/.local/bin`。
+> 没有 pipx/uv？退回 `python3 -m pip install --user md-to-office` 也一样，只是入口在 `~/.local/bin`。
 > 只出 Word 时依赖仅 `python-docx` + `Pillow`；**PDF 需要本机 LibreOffice**（不是 pip 依赖）。
 
 > **排版有据可依**：正文 10.5pt / 1.15 倍行距 / 22-22-20-20mm 不是拍脑袋——
@@ -71,7 +70,7 @@ Markdown 里的架构图通常是用字符画的：
 
 ```bash
 # 1) 装（装完是可执行命令，不需要 python 前缀）
-pipx install git+https://github.com/darkknight110/md-to-office.git
+pipx install md-to-office
 
 # 1.5) 先体检环境（可选，但它会告诉你 PDF 能不能出）
 md2office --doctor

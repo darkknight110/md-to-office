@@ -18,9 +18,8 @@ agent calls it automatically. Built for Chinese technical proposals, reports and
 ## Install in one line
 
 ```bash
-git clone https://github.com/darkknight110/md-to-office.git ~/.md-to-office \
-  && python3 -m pip install -q -r ~/.md-to-office/requirements.txt \
-  && python3 ~/.md-to-office/scripts/md2office.py --help
+pipx install md-to-office        # published on PyPI
+# or: uv tool install md-to-office
 ```
 
 Then:

@@ -12,6 +12,10 @@
 - 排版基线：52 份真实交付物实测 + 国标对照，脚本可复跑
 - 测试 36 项；CI 覆盖 Python 3.9/3.11/3.12/3.13 + PDF 路径 + 每日定时
 
+### 1.0.2
+
+- 发布到 PyPI：`pipx install md-to-office`（README 中的安装命令同步更新）
+
 ### 1.0.1
 
 - Windows：CLI 入口统一把 stdout/stderr 切到 UTF-8；此前打印 `✓/✗` 会 `UnicodeEncodeError` 直接崩
